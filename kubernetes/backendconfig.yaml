@@ -1,0 +1,9 @@
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: quarkus-demo-backendconfig
+  namespace: quarkus-demo
+spec:
+  # /api/agent/events/stream is a long-lived SSE endpoint; GCE's default 30s
+  # backend timeout kills it mid-stream (ERR_INCOMPLETE_CHUNKED_ENCODING)
+  timeoutSec: 3600

@@ -8,19 +8,30 @@ resources:
 - rbac.yaml
 - service-stable.yaml
 - service-canary.yaml
-- gateway.yaml
+- ingress.yaml
+- backendconfig.yaml
 - analysistemplate.yaml
 - rollout.yaml
 
-# Common labels applied to all resources
-commonLabels:
-  app.kubernetes.io/name: quarkus-demo
-  app.kubernetes.io/part-of: argo-rollouts-demo
+# Common labels applied to all resources. includeSelectors: false is required
+# here - commonLabels/labels would otherwise also inject into Service
+# selectors, but Argo Rollouts isn't a kustomize-recognized workload type so
+# its pod template labels never get the same injection, breaking Service
+# routing entirely (selector would require labels no pod actually has).
+labels:
+- pairs:
+    app.kubernetes.io/name: quarkus-demo
+    app.kubernetes.io/part-of: argo-rollouts-demo
+  includeSelectors: false
 
 # Image configuration - can be overridden with kustomize edit set image
+# newTag must track rollout.yaml's own image tag (v1.stable) - this
+# transformer overrides ANY matching image regardless of what's hardcoded in
+# rollout.yaml, so leaving it at "latest" would silently deploy an unstable
+# build on every `kubectl apply -k` instead of the intended healthy baseline.
 images:
 - name: ghcr.io/kdubois/argo-rollouts-quarkus-demo
-  newTag: latest
+  newTag: v1.stable
 
 # ConfigMap generator for application configuration (optional)
 # configMapGenerator:

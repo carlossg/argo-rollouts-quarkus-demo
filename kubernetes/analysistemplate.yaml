@@ -25,7 +25,7 @@ spec:
           stableLabel: role=stable
           canaryLabel: role=canary
           # Optional: Create GitHub issues on failures
-          githubUrl: https://github.com/kdubois/argo-rollouts-quarkus-demo
+          githubUrl: https://github.com/carlossg/argo-rollouts-quarkus-demo
           baseBranch: main
           # Optional: Additional context for AI analysis
           extraPrompt: "Focus on application errors, performance issues, and user-facing problems. Ignore color changes or cosmetic updates."

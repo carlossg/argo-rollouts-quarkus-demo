@@ -31,6 +31,7 @@ public class AgentActivityResource {
     private final List<ActivityEvent> cachedEvents = new ArrayList<>();
     private long lastPolledId = 0;
     private int consecutiveEmptyPolls = 0;
+    private int consecutiveErrors = 0;
 
     @GET
     @Path("/events")
@@ -62,6 +63,12 @@ public class AgentActivityResource {
         try {
             Long sinceId = lastPolledId > 0 ? lastPolledId : null;
             List<ActivityEvent> events = agentEventsClient.getEvents(sinceId);
+
+            if (consecutiveErrors > 0) {
+                Log.info("Recovered reaching kubernetes-agent for SSE bridge after "
+                        + consecutiveErrors + " failed attempt(s)");
+                consecutiveErrors = 0;
+            }
 
             if (events.isEmpty() && lastPolledId > 0) {
                 consecutiveEmptyPolls++;
@@ -95,7 +102,15 @@ public class AgentActivityResource {
                 cachedEvents.remove(0);
             }
         } catch (Exception e) {
-            Log.trace("Could not reach kubernetes-agent for SSE bridge: " + e.getMessage());
+            consecutiveErrors++;
+            // Log the first failure immediately, then every ~30s (60 polls at the
+            // 0.5s schedule) so a persistent misconfiguration (e.g. a wrong or
+            // unset KUBERNETES_AGENT_URL) is actually visible in the logs instead
+            // of silently leaving the activity feed empty forever.
+            if (consecutiveErrors == 1 || consecutiveErrors % 60 == 0) {
+                Log.warn("Could not reach kubernetes-agent for SSE bridge (failed attempt "
+                        + consecutiveErrors + "): " + e.getMessage());
+            }
         }
     }
 

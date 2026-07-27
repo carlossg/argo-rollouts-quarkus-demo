@@ -71,12 +71,10 @@ spec:
       # Reference to stable and canary services
       canaryService: quarkus-demo-canary
       stableService: quarkus-demo-stable
-      # Traffic routing using Kubernetes Gateway API
-      trafficRouting:
-        plugins:
-          argoproj-labs/gatewayAPI:
-            httpRoute: quarkus-demo-route
-            namespace: quarkus-demo
+      # No trafficRouting plugin configured - this cluster's Argo Rollouts
+      # controller doesn't have the Gateway API plugin registered and Gateway
+      # API CRDs aren't installed, so this falls back to plain canary weights
+      # + services (traffic split via replica ratio, not an actual router).
       # Analysis configuration
       analysis:
         startingStep: 2 # delay starting analysis run until we have collected enough metrics

@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: gce
+  name: quarkus-demo
+  namespace: quarkus-demo
+spec:
+  rules:
+  - host: quarkus-demo.argo.csanchez.org
+    http:
+      paths:
+      - backend:
+          service:
+            name: quarkus-demo-stable
+            port:
+              name: http
+        path: /
+        pathType: Prefix
+  - host: quarkus-demo-preview.argo.csanchez.org
+    http:
+      paths:
+      - backend:
+          service:
+            name: quarkus-demo-canary
+            port:
+              name: http
+        path: /
+        pathType: Prefix
